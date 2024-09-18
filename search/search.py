@@ -85,6 +85,10 @@ def depthFirstSearch(problem):
     print("Start:", problem.getStartState())
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
+
+    Pacman does not go to all the explored squares on his way to the goal.
+    DFS explores a lot of squares that are not part of the final solution.
+    Pacman may pass through only a few of the squares he explored, leaving many explored squares outside of the path to the goal.
     """
     "*** YOUR CODE HERE ***"
     #util.raiseNotDefined()
@@ -92,7 +96,7 @@ def depthFirstSearch(problem):
     # Import the stack data structure from util
     from util import Stack
 
-    # Create a Stack to hold the fringe (the set of states to be explored)
+    # Create a Stack to hold the fringe (the set of states to be explored) LIFO
     fringe = Stack()
     # Initialize the fringe with the starting state of the problem
     fringe.push((problem.getStartState(), [], []))  # (state, actions, visited path)
@@ -127,7 +131,39 @@ def depthFirstSearch(problem):
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    #util.raiseNotDefined()
+    from util import Queue  # Import the queue data structure
+
+    # Create a Queue to hold the fringe (the set of states to be explored)
+    fringe = Queue()
+    # Initialize the fringe with the starting state of the problem
+    fringe.push((problem.getStartState(), []))  # (state, actions) We dont get visited path because BFS guarantees the shortest path
+
+    # Create a set to hold the visited nodes
+    visited = set()
+
+    while not fringe.isEmpty():
+        # Pop the current node from the fringe (FIFO behavior)
+        current_state, actions = fringe.pop()
+
+        # If the current state is the goal, return the actions to reach it
+        if problem.isGoalState(current_state):
+            return actions
+
+        # If the current state hasn't been visited
+        if current_state not in visited:
+            # Mark the state as visited
+            visited.add(current_state)
+
+            # Expand the current state to get its successors
+            for successor, action, step_cost in problem.getSuccessors(current_state):
+                # If the successor has not been visited, push it onto the queue
+                if successor not in visited:
+                    fringe.push((successor, actions + [action]))
+
+    # If no solution is found, return an empty list
+    return []
+
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
