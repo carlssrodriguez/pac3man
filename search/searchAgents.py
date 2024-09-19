@@ -271,6 +271,10 @@ class CornersProblem(search.SearchProblem):
     This search problem finds paths through all four corners of a layout.
 
     You must select a suitable state space and successor function
+
+    A state in this problem is a tuple ( pacmanPosition, visitedCorners ) where
+    pacmanPosition: a tuple (x,y) of integers specifying Pacman's position
+    visitedCorners: a tuple of booleans indicating whether each corner has been visited
     """
 
     def __init__(self, startingGameState):
@@ -288,6 +292,8 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
+        # Start with the non visited corners
+        self.startState = (self.startingPosition, (False, False, False, False))
 
     def getStartState(self):
         """
@@ -295,38 +301,45 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        #util.raiseNotDefined()
+        return self.startState
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        #util.raiseNotDefined()
+        # The objective is to visit all corners
+        _, visitedCorners = state
+        return all(visitedCorners)
 
     def getSuccessors(self, state):
         """
         Returns successor states, the actions they require, and a cost of 1.
-
-         As noted in search.py:
-            For a given state, this should return a list of triples, (successor,
-            action, stepCost), where 'successor' is a successor to the current
-            state, 'action' is the action required to get there, and 'stepCost'
-            is the incremental cost of expanding to that successor
         """
-
         successors = []
+        currentPosition, visitedCorners = state
+
+        # Expand in every direction possible
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
-            # Add a successor state to the successor list if the action is legal
-            # Here's a code snippet for figuring out whether a new position hits a wall:
-            #   x,y = currentPosition
-            #   dx, dy = Actions.directionToVector(action)
-            #   nextx, nexty = int(x + dx), int(y + dy)
-            #   hitsWall = self.walls[nextx][nexty]
+            x, y = currentPosition
+            dx, dy = Actions.directionToVector(action)
+            next_x, next_y = int(x + dx), int(y + dy)
 
-            "*** YOUR CODE HERE ***"
+            if not self.walls[next_x][next_y]:
+                nextPosition = (next_x, next_y)
 
-        self._expanded += 1 # DO NOT CHANGE
+                # Update visited corners if Pacman gets to one
+                newVisitedCorners = list(visitedCorners)
+                if nextPosition in self.corners:
+                    cornerIndex = self.corners.index(nextPosition)
+                    newVisitedCorners[cornerIndex] = True
+
+                newState = (nextPosition, tuple(newVisitedCorners))
+                successors.append((newState, action, 1))
+
+        self._expanded += 1  # Counter for expanded nodes
         return successors
 
     def getCostOfActions(self, actions):
@@ -334,12 +347,14 @@ class CornersProblem(search.SearchProblem):
         Returns the cost of a particular sequence of actions.  If those actions
         include an illegal move, return 999999.  This is implemented for you.
         """
-        if actions == None: return 999999
+        if actions == None: 
+            return 999999
         x,y= self.startingPosition
         for action in actions:
             dx, dy = Actions.directionToVector(action)
             x, y = int(x + dx), int(y + dy)
-            if self.walls[x][y]: return 999999
+            if self.walls[x][y]: 
+                return 999999
         return len(actions)
 
 
