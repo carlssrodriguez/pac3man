@@ -169,7 +169,7 @@ def breadthFirstSearch(problem):
 from util import PriorityQueue
 
 def uniformCostSearch(problem):
-    """Search the node of least total cost first."""
+    """Search the node of least total cost first. It guarantees the least cost solution"""
     "*** YOUR CODE HERE ***"
     #util.raiseNotDefined()
 
@@ -217,7 +217,45 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    #util.raiseNotDefined()
+
+    from util import PriorityQueue  # Import the priority queue data structure
+
+def aStarSearch(problem, heuristic=nullHeuristic):
+    # Create a PriorityQueue to hold the fringe (the set of states to be explored)
+    fringe = PriorityQueue()
+    # Initialize the fringe with the starting state of the problem
+    # The priority is the total cost (cost + heuristic)
+    start_state = problem.getStartState()
+    fringe.push((start_state, [], 0), 0 + heuristic(start_state, problem))
+
+    # Create a dictionary to hold the best cost to reach each state
+    visited = {}
+
+    while not fringe.isEmpty():
+        # Pop the node with the lowest cost + heuristic from the fringe
+        current_state, actions, current_cost = fringe.pop()
+
+        # If this is the goal, return the actions to reach it
+        if problem.isGoalState(current_state):
+            return actions
+
+        # If the current state hasn't been visited or we found a cheaper way to get there
+        if current_state not in visited or current_cost < visited[current_state]:
+            # Mark the state as visited with the current cost
+            visited[current_state] = current_cost
+
+            # Expand the current state to get its successors
+            for successor, action, step_cost in problem.getSuccessors(current_state):
+                # Calculate the new cost for reaching this successor
+                new_cost = current_cost + step_cost
+                # Calculate the priority using the heuristic
+                priority = new_cost + heuristic(successor, problem)
+                # Push the successor to the priority queue with its priority
+                fringe.push((successor, actions + [action], new_cost), priority)
+
+    # If no solution is found, return an empty list
+    return []
 
 
 # Abbreviations
