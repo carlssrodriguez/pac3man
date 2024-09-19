@@ -270,77 +270,72 @@ class CornersProblem(search.SearchProblem):
     """
     This search problem finds paths through all four corners of a layout.
 
-    You must select a suitable state space and successor function
-
-    A state in this problem is a tuple ( pacmanPosition, visitedCorners ) where
-    pacmanPosition: a tuple (x,y) of integers specifying Pacman's position
-    visitedCorners: a tuple of booleans indicating whether each corner has been visited
+    A state in this problem is a tuple (pacmanPosition, visitedCorners), where:
+      - pacmanPosition: a tuple (x, y) representing Pacman's current position.
+      - visitedCorners: a tuple of booleans indicating whether each corner has been visited.
     """
 
     def __init__(self, startingGameState):
         """
-        Stores the walls, pacman's starting position and corners.
+        Stores the walls, Pacman's starting position, and the corners of the maze.
         """
-        self.walls = startingGameState.getWalls()
-        self.startingPosition = startingGameState.getPacmanPosition()
-        top, right = self.walls.height-2, self.walls.width-2
-        self.corners = ((1,1), (1,top), (right, 1), (right, top))
+        self.walls = startingGameState.getWalls()  # Get the maze walls
+        self.startingPosition = startingGameState.getPacmanPosition()  # Initial Pacman position
+        top, right = self.walls.height - 2, self.walls.width - 2  # Define the layout bounds
+        self.corners = ((1, 1), (1, top), (right, 1), (right, top))  # Define the four corners
+
+        # Check for food at each corner, and issue a warning if missing
         for corner in self.corners:
             if not startingGameState.hasFood(*corner):
-                print('Warning: no food in corner ' + str(corner))
-        self._expanded = 0 # DO NOT CHANGE; Number of search nodes expanded
-        # Please add any code here which you would like to use
-        # in initializing the problem
-        "*** YOUR CODE HERE ***"
-        # Start with the non visited corners
+                print(f'Warning: no food in corner {corner}')
+
+        self._expanded = 0  # Counter for number of expanded nodes
+        # Start with Pacman's position and mark all corners as not visited
         self.startState = (self.startingPosition, (False, False, False, False))
 
     def getStartState(self):
         """
-        Returns the start state (in your state space, not the full Pacman state
-        space)
+        Returns the starting state, which is Pacman's initial position and the four unvisited corners.
         """
-        "*** YOUR CODE HERE ***"
-        #util.raiseNotDefined()
         return self.startState
 
     def isGoalState(self, state):
         """
-        Returns whether this search state is a goal state of the problem.
+        Returns True if all four corners have been visited.
         """
-        "*** YOUR CODE HERE ***"
-        #util.raiseNotDefined()
-        # The objective is to visit all corners
         _, visitedCorners = state
-        return all(visitedCorners)
+        return all(visitedCorners)  # Goal is reached when all corners have been visited
 
     def getSuccessors(self, state):
         """
-        Returns successor states, the actions they require, and a cost of 1.
+        For a given state, returns a list of successor states, actions to reach them, and a cost of 1.
         """
         successors = []
         currentPosition, visitedCorners = state
 
-        # Expand in every direction possible
+        # Try moving in all four directions (North, South, East, West)
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             x, y = currentPosition
             dx, dy = Actions.directionToVector(action)
             next_x, next_y = int(x + dx), int(y + dy)
 
+            # Check if the next position is within bounds and not blocked by a wall
             if not self.walls[next_x][next_y]:
                 nextPosition = (next_x, next_y)
-
-                # Update visited corners if Pacman gets to one
                 newVisitedCorners = list(visitedCorners)
+
+                # If Pacman reaches a corner, mark it as visited
                 if nextPosition in self.corners:
                     cornerIndex = self.corners.index(nextPosition)
                     newVisitedCorners[cornerIndex] = True
 
+                # Create a new state with the updated visited corners and add it to successors
                 newState = (nextPosition, tuple(newVisitedCorners))
                 successors.append((newState, action, 1))
 
-        self._expanded += 1  # Counter for expanded nodes
+        self._expanded += 1  # Keep track of how many nodes have been expanded
         return successors
+
 
     def getCostOfActions(self, actions):
         """
