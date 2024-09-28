@@ -440,35 +440,27 @@ class AStarFoodSearchAgent(SearchAgent):
 
 def foodHeuristic(state, problem):
     """
-    Your heuristic for the FoodSearchProblem goes here.
-
-    This heuristic must be consistent to ensure correctness.  First, try to come
-    up with an admissible heuristic; almost all admissible heuristics will be
-    consistent as well.
-
-    If using A* ever finds a solution that is worse uniform cost search finds,
-    your heuristic is *not* consistent, and probably not admissible!  On the
-    other hand, inadmissible or inconsistent heuristics may find optimal
-    solutions, so be careful.
-
-    The state is a tuple ( pacmanPosition, foodGrid ) where foodGrid is a Grid
-    (see game.py) of either True or False. You can call foodGrid.asList() to get
-    a list of food coordinates instead.
-
-    If you want access to info like walls, capsules, etc., you can query the
-    problem.  For example, problem.walls gives you a Grid of where the walls
-    are.
-
-    If you want to *store* information to be reused in other calls to the
-    heuristic, there is a dictionary called problem.heuristicInfo that you can
-    use. For example, if you only want to count the walls once and store that
-    value, try: problem.heuristicInfo['wallCount'] = problem.walls.count()
-    Subsequent calls to this heuristic can access
-    problem.heuristicInfo['wallCount']
+    Heuristic for the FoodSearchProblem. It estimates the cost to collect all the remaining food.
+    
+    state: A tuple (pacmanPosition, foodGrid) where:
+        pacmanPosition: a tuple (x, y) specifying Pacman's position.
+        foodGrid: a Grid (see game.py) of either True or False, specifying remaining food.
+    
+    problem: The FoodSearchProblem instance for this layout.
     """
-    position, foodGrid = state
-    "*** YOUR CODE HERE ***"
-    return 0
+    pacman_position, food_grid = state
+    food_positions = food_grid.asList()  # Convert the grid to a list of positions with food
+
+    # If there is no food left, the heuristic is 0
+    if not food_positions:
+        return 0
+
+    # Calculate the Manhattan distance from Pacman's current position to each food position
+    distances = [util.manhattanDistance(pacman_position, food_pos) for food_pos in food_positions]
+
+    # Return the maximum distance to any food piece as the heuristic (non-trivial and consistent)
+    return max(distances)
+
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
