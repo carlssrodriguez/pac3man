@@ -355,25 +355,23 @@ class CornersProblem(search.SearchProblem):
 
 def cornersHeuristic(state, problem):
     """
-    A non-trivial heuristic for the CornersProblem.
-    The heuristic estimates the minimum distance required to visit all unvisited corners.
+    Heuristic for the CornersProblem. Estimates the minimum distance required to 
+    visit all unvisited corners from the current position.
     """
     current_position, visited_corners = state
-    corners = problem.corners  # The coordinates of the four corners
-    walls = problem.walls  # Maze walls
-    
-    # List of unvisited corners
+    corners = problem.corners  # Coordinates of all four corners
     unvisited_corners = [corner for i, corner in enumerate(corners) if not visited_corners[i]]
-    
-    # If all corners have been visited, return a heuristic value of 0
+
+    # If all corners are visited, the heuristic is 0
     if not unvisited_corners:
         return 0
-    
-    # Compute the Manhattan distances from the current position to each unvisited corner
+
+    # Calculate the Manhattan distance to each unvisited corner
     distances = [util.manhattanDistance(current_position, corner) for corner in unvisited_corners]
-    
-    # Use the maximum distance as the heuristic (you could also experiment with the sum of distances)
+
+    # The heuristic returns the maximum distance to any unvisited corner
     return max(distances)
+
 
 
 class AStarCornersAgent(SearchAgent):
@@ -440,25 +438,24 @@ class AStarFoodSearchAgent(SearchAgent):
 
 def foodHeuristic(state, problem):
     """
-    Heuristic for the FoodSearchProblem. It estimates the cost to collect all the remaining food.
+    Heuristic for the FoodSearchProblem. Estimates the minimum cost to collect 
+    all remaining food.
     
-    state: A tuple (pacmanPosition, foodGrid) where:
-        pacmanPosition: a tuple (x, y) specifying Pacman's position.
-        foodGrid: a Grid (see game.py) of either True or False, specifying remaining food.
-    
-    problem: The FoodSearchProblem instance for this layout.
+    state: (pacmanPosition, foodGrid), where:
+        pacmanPosition: tuple (x, y) specifying Pacman's current position.
+        foodGrid: a Grid representing the positions of food.
     """
     pacman_position, food_grid = state
-    food_positions = food_grid.asList()  # Convert the grid to a list of positions with food
+    food_positions = food_grid.asList()  # Convert food grid to a list of positions
 
-    # If there is no food left, the heuristic is 0
+    # If no food remains, return a heuristic value of 0
     if not food_positions:
         return 0
 
-    # Calculate the Manhattan distance from Pacman's current position to each food position
+    # Compute the Manhattan distance to each food position
     distances = [util.manhattanDistance(pacman_position, food_pos) for food_pos in food_positions]
 
-    # Return the maximum distance to any food piece as the heuristic (non-trivial and consistent)
+    # Return the maximum distance to any food position
     return max(distances)
 
 
@@ -484,21 +481,19 @@ class ClosestDotSearchAgent(SearchAgent):
         Returns a path (a list of actions) to the closest dot, starting from
         gameState.
         """
-        # Here are some useful elements of the startState
-        startPosition = gameState.getPacmanPosition()
-        food = gameState.getFood()
-        walls = gameState.getWalls()
+        # Create an instance of AnyFoodSearchProblem
         problem = AnyFoodSearchProblem(gameState)
 
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # Use BFS to find the path to the closest dot
+        return search.breadthFirstSearch(problem)
+    
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
     A search problem for finding a path to any food.
 
     This search problem is just like the PositionSearchProblem, but has a
-    different goal test, which you need to fill in below.  The state space and
+    different goal test, which you need to fill in below. The state space and
     successor function do not need to be changed.
 
     The class definition above, AnyFoodSearchProblem(PositionSearchProblem),
@@ -517,17 +512,16 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         self.walls = gameState.getWalls()
         self.startState = gameState.getPacmanPosition()
         self.costFn = lambda x: 1
-        self._visited, self._visitedlist, self._expanded = {}, [], 0 # DO NOT CHANGE
+        self._visited, self._visitedlist, self._expanded = {}, [], 0  # DO NOT CHANGE
 
     def isGoalState(self, state):
         """
         The state is Pacman's position. Fill this in with a goal test that will
         complete the problem definition.
         """
-        x,y = state
-
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        x, y = state
+        # The goal state is reached if Pacman is on a food dot
+        return self.food[x][y]
 
 def mazeDistance(point1, point2, gameState):
     """
