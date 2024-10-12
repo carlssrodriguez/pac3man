@@ -47,34 +47,49 @@ class ReflexAgent(Agent):
         bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
         chosenIndex = random.choice(bestIndices) # Pick randomly among the best
 
-        "Add more of your code here if you want to"
-
         return legalMoves[chosenIndex]
 
     def evaluationFunction(self, currentGameState, action):
-        """
-        Design a better evaluation function here.
+      """
+      A more advanced evaluation function to guide Pacman based on several game state factors.
+      
+      The function takes in the current and proposed successor GameState and returns a score 
+      representing how favorable the new state is for Pacman.
+      """
+      # Generate the successor state after applying the action
+      successorGameState = currentGameState.generatePacmanSuccessor(action)
+      newPos = successorGameState.getPacmanPosition()  # New position of Pacman
+      newFood = successorGameState.getFood()  # Remaining food
+      newGhostStates = successorGameState.getGhostStates()  # Current state of the ghosts
+      newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]  # Scared timers for ghosts
 
-        The evaluation function takes in the current and proposed successor
-        GameStates (pacman.py) and returns a number, where higher numbers are better.
+      # Start the score with the base score from the successor state
+      score = successorGameState.getScore()
 
-        The code below extracts some useful information from the state, like the
-        remaining food (newFood) and Pacman position after moving (newPos).
-        newScaredTimes holds the number of moves that each ghost will remain
-        scared because of Pacman having eaten a power pellet.
+      # Consider the distance to the nearest food
+      foodDistances = [manhattanDistance(newPos, food) for food in newFood.asList()]
+      if foodDistances:
+          score += 10 / min(foodDistances)  # Favor closer food by increasing score
 
-        Print out these variables to see what you're getting, then combine them
-        to create a masterful evaluation function.
-        """
-        # Useful information you can extract from a GameState (pacman.py)
-        successorGameState = currentGameState.generatePacmanSuccessor(action)
-        newPos = successorGameState.getPacmanPosition()
-        newFood = successorGameState.getFood()
-        newGhostStates = successorGameState.getGhostStates()
-        newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+      # Factor in ghost positions and whether they are scared or not
+      for i, ghostState in enumerate(newGhostStates):
+          ghostPos = ghostState.getPosition()
+          ghostDistance = manhattanDistance(newPos, ghostPos)
 
-        "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+          if newScaredTimes[i] > 0:
+              # If the ghost is scared, Pacman is encouraged to approach it
+              if ghostDistance > 0:
+                  score += 200 / ghostDistance
+          else:
+              # If the ghost is not scared, Pacman should avoid getting too close
+              if ghostDistance > 0:
+                  score -= 10 / ghostDistance
+
+      # Discourage stopping unless necessary by applying a penalty
+      if action == Directions.STOP:
+          score -= 50
+
+      return score
 
 def scoreEvaluationFunction(currentGameState):
     """
