@@ -215,18 +215,72 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
-      Your expectimax agent (question 4)
+    Agent that uses Expectimax search to make decisions, considering probabilistic ghost behavior.
     """
 
     def getAction(self, gameState):
         """
-          Returns the expectimax action using self.depth and self.evaluationFunction
-
-          All ghosts should be modeled as choosing uniformly at random from their
-          legal moves.
+        Chooses the best action for Pacman based on the expectimax algorithm.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # Start the expectimax search with Pacman as the first agent
+        return self.expectimax(gameState, 0, 0)[1]
+
+    def expectimax(self, gameState, depth, agentIndex):
+        """
+        Recursively applies expectimax. Returns (value, action).
+        """
+        # Base case: stop if we've reached the depth limit or hit a terminal state
+        if depth == self.depth or gameState.isWin() or gameState.isLose():
+            return self.evaluationFunction(gameState), None
+
+        # Determine if it's Pacman's turn or a ghost's turn
+        if agentIndex == 0:
+            return self.maximize(gameState, depth)
+        else:
+            return self.calculateExpectation(gameState, depth, agentIndex)
+
+    def maximize(self, gameState, depth):
+        """
+        Maximizes Pacman's score.
+        """
+        best_score = float('-inf')
+        best_move = None
+
+        # Explore all possible moves for Pacman
+        for action in gameState.getLegalActions(0):
+            next_state = gameState.generateSuccessor(0, action)
+            score, _ = self.expectimax(next_state, depth, 1)
+
+            # Update best_score and best_move if a higher score is found
+            if score > best_score:
+                best_score = score
+                best_move = action
+
+        return best_score, best_move
+
+    def calculateExpectation(self, gameState, depth, agentIndex):
+        """
+        Computes the expected value for ghost actions, assuming random behavior.
+        """
+        actions = gameState.getLegalActions(agentIndex)
+        total_score = 0
+
+        # Sum up the values of all actions, treating each one as equally likely
+        for action in actions:
+            next_state = gameState.generateSuccessor(agentIndex, action)
+
+            # Move to the next agent, increasing depth if it's the last ghost
+            if agentIndex == gameState.getNumAgents() - 1:
+                score, _ = self.expectimax(next_state, depth + 1, 0)
+            else:
+                score, _ = self.expectimax(next_state, depth, agentIndex + 1)
+
+            total_score += score
+
+        # Calculate average (expected) value
+        expected_score = total_score / len(actions) if actions else 0
+        return expected_score, None
+
 
 def betterEvaluationFunction(currentGameState):
     """
