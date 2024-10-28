@@ -285,51 +285,50 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
 def betterEvaluationFunction(currentGameState):
     """
     A more effective evaluation function for Pacman that considers:
-    - Closest food distance
+    - Distance to the nearest food
     - Ghost distances (avoiding or chasing based on their state)
-    - Distance to capsules (especially useful when ghosts are active)
+    - Distance to capsules (useful when ghosts are active)
     - Remaining food dots
     """
 
-    # Obtener la posición de Pacman y detalles del estado actual
+    # Get Pacman's position and relevant state details
     pacmanPos = currentGameState.getPacmanPosition()
     foodGrid = currentGameState.getFood()
     ghostStates = currentGameState.getGhostStates()
     capsules = currentGameState.getCapsules()
 
-    # Comenzamos con el puntaje base del estado
+    # Start with the base score for the current state
     score = currentGameState.getScore()
 
-    # Distancia a la comida más cercana
+    # Distance to the closest food
     foodList = foodGrid.asList()
     if foodList:
         nearestFoodDist = min([manhattanDistance(pacmanPos, food) for food in foodList])
-        score += 10 / nearestFoodDist  # Inverso de la distancia para dar prioridad a la comida cercana
+        score += 10 / nearestFoodDist  # Inverse distance to prioritize closer food
 
-    # Ajustar el puntaje en función de la distancia a los fantasmas
+    # Adjust score based on ghost distances
     for ghost in ghostStates:
         ghostPos = ghost.getPosition()
         distToGhost = manhattanDistance(pacmanPos, ghostPos)
 
         if ghost.scaredTimer > 0:
-            # Incentivar acercarse a los fantasmas asustados
+            # Encourage getting closer to scared ghosts
             score += 200 / distToGhost if distToGhost > 0 else 200
         else:
-            # Evitar fantasmas si no están asustados
+            # Avoid non-scared ghosts
             if distToGhost > 0:
                 score -= 10 / distToGhost
 
-    # Incentivar recoger cápsulas si hay fantasmas activos en el tablero
+    # Encourage collecting capsules if there are active ghosts
     if capsules and any(ghost.scaredTimer == 0 for ghost in ghostStates):
         nearestCapsuleDist = min([manhattanDistance(pacmanPos, cap) for cap in capsules])
-        score += 5 / nearestCapsuleDist  # Motivar la recogida de cápsulas cuando sea necesario
+        score += 5 / nearestCapsuleDist  # Incentivize picking up capsules when needed
 
-    # Penalizar la cantidad de comida restante en el tablero
+    # Penalize the number of remaining food dots
     foodRemaining = len(foodList)
-    score -= 4 * foodRemaining  # Restar puntos si quedan muchos alimentos
+    score -= 4 * foodRemaining  # Subtract points if there's a lot of food left
 
     return score
 
 # Abbreviation
 better = betterEvaluationFunction
-
