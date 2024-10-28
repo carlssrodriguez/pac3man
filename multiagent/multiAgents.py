@@ -284,13 +284,51 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
 
 def betterEvaluationFunction(currentGameState):
     """
-      Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
-      evaluation function (question 5).
-
-      DESCRIPTION: <write something here so we know what you did>
+    A more effective evaluation function for Pacman that considers:
+    - Closest food distance
+    - Ghost distances (avoiding or chasing based on their state)
+    - Distance to capsules (especially useful when ghosts are active)
+    - Remaining food dots
     """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    # Obtener la posición de Pacman y detalles del estado actual
+    pacmanPos = currentGameState.getPacmanPosition()
+    foodGrid = currentGameState.getFood()
+    ghostStates = currentGameState.getGhostStates()
+    capsules = currentGameState.getCapsules()
+
+    # Comenzamos con el puntaje base del estado
+    score = currentGameState.getScore()
+
+    # Distancia a la comida más cercana
+    foodList = foodGrid.asList()
+    if foodList:
+        nearestFoodDist = min([manhattanDistance(pacmanPos, food) for food in foodList])
+        score += 10 / nearestFoodDist  # Inverso de la distancia para dar prioridad a la comida cercana
+
+    # Ajustar el puntaje en función de la distancia a los fantasmas
+    for ghost in ghostStates:
+        ghostPos = ghost.getPosition()
+        distToGhost = manhattanDistance(pacmanPos, ghostPos)
+
+        if ghost.scaredTimer > 0:
+            # Incentivar acercarse a los fantasmas asustados
+            score += 200 / distToGhost if distToGhost > 0 else 200
+        else:
+            # Evitar fantasmas si no están asustados
+            if distToGhost > 0:
+                score -= 10 / distToGhost
+
+    # Incentivar recoger cápsulas si hay fantasmas activos en el tablero
+    if capsules and any(ghost.scaredTimer == 0 for ghost in ghostStates):
+        nearestCapsuleDist = min([manhattanDistance(pacmanPos, cap) for cap in capsules])
+        score += 5 / nearestCapsuleDist  # Motivar la recogida de cápsulas cuando sea necesario
+
+    # Penalizar la cantidad de comida restante en el tablero
+    foodRemaining = len(foodList)
+    score -= 4 * foodRemaining  # Restar puntos si quedan muchos alimentos
+
+    return score
 
 # Abbreviation
 better = betterEvaluationFunction
